@@ -1,48 +1,64 @@
 <!DOCTYPE HTML>
 <html>
 <head>
+	<meta charset="utf-8">
+	<style>
+		.line {
+  			fill: none;
+  			stroke: steelblue;
+  			stroke-width: 2px;
+		}	
+	</style>	
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
 		$(document).ready(function(){
 			var gitData = [];
 			var processData = function(gitData) {
-				var width = 400, height = 400;
-			var data = [10, 15, 20, 25, 30];
-			var svg = d3.select("body")
-			    .append("svg")
-			    .attr("width", width)
-			    .attr("height", height);
-			
-			var xscale = d3.scaleLinear()
-			    .domain([0, d3.max(data)])
-			    .range([0, width - 100]);
-			
-			var yscale = d3.scaleLinear()
-			        .domain([0, d3.max(data)])
-			        .range([height/2, 0]);
-			
-			var x_axis = d3.axisBottom()
-			        .scale(xscale);
-			
-			var y_axis = d3.axisLeft()
-			        .scale(yscale);
-			
-			    svg.append("g")
-			       .attr("transform", "translate(50, 10)")
-			       .call(y_axis);
-			
-			var xAxisTranslate = height/2 + 10;
-			
-			    svg.append("g")
-			            .attr("transform", "translate(50, " + xAxisTranslate  +")")
-			            .call(x_axis)
-			
-							var startDate = gitData[0].Date;
-							var endDate = gitData[gitData.length-1].Date;
-							$("#graph").html("From " + startDate + " to " + endDate)
-						}
-			
+				var margin = {top: 20, right: 20, bottom: 30, left: 50},
+    			width = 960 - margin.left - margin.right,
+    			height = 500 - margin.top - margin.bottom;
+    		var x = d3.scaleTime().range([0, width]);
+			var y = d3.scaleLinear().range([height, 0]);	
+
+			var valueline = d3.line()
+    			.x(function(d) { return x(d.date); })
+    			.y(function(d) { return y(d.Download); });
+
+    		var svg = d3.select("body").append("svg")
+    			.attr("width", width + margin.left + margin.right)
+    			.attr("height", height + margin.top + margin.bottom)
+  				.append("g")
+    			.attr("transform",
+          			"translate(" + margin.left + "," + margin.top + ")");
+    		x.domain(d3.extent(gitData, function(d) { return d.date; }));
+    		y.domain([0, d3.max(gitData, function(d) { return d.Download; })]);	
+  			//y.domain([0, d3.max(gitData, function(d) { return d.tempDownload; })]);	
+  			svg.append("path")
+      			.data([gitData])
+      			.attr("class", "line")
+      			.attr("d", valueline);
+      		svg.append("g")
+      			.attr("transform", "translate(0," + height + ")")
+      			.call(d3.axisBottom(x));	
+     		svg.append("g")
+      			.call(d3.axisLeft(y));
+      		svg.append("circle")
+      			.data([gitData])
+  				.attr("class", "dot")
+  				.attr("x", function(d) { return x(d.date); })
+  				.attr("y", function(d) { return y(d.Download); })
+  				.attr("r", 4);	
+      		svg.append("text")
+      			.data([gitData])
+      			.enter()
+	  			.attr("class","label")
+  				.attr("x", function(d) { return x(d.date); })
+  				.attr("y", function(d) { return y(d.Download); })
+  				.attr("dy", ".35em")
+  				.text(function(d) { return d.Version; })
+	
+		}	
 		$.ajax({
 				type: 'GET',
 				url: ('https://api.github.com/repos/npm/npm/releases'),
@@ -50,25 +66,23 @@
 			}).done(function(response) {
 				response.data.forEach(function(item,index){
 					var temp = {};
-					temp.Date     = new Date(item.published_at)
+					temp.date     = new Date(item.published_at)
 					temp.Version  = item.tag_name
-				/*	temp.Download0 = item.assets[0].download_count*/
+					temp.Download = new Date(item.published_at).getDate()
+					//temp.Download = item.assets[0].download_count
+					//$("#graph").append(JSON.stringify(temp) + "<br>")
+				
 					gitData.unshift(temp);
 				});	
+				processData(gitData)
 			}).fail(function(error) {
-				$("#graph").html( JSON.stringify(error))
-			});
-			processData(gitData)
-
-			
-
-
-
-
+				$("#graph").append( JSON.stringify(error) + "<br>")
+			});			
 		});	
 	</script>
 </head>
 <body>
+	<div id="graph">Error : </div>
 <h2>Chart showing Releases of GitHub .... over time</h2>
 </body>
 </html>

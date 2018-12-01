@@ -5,12 +5,20 @@
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
 		$(document).ready(function(){
-			$("#graph").html("Hello World")
-			d3.selectAll("div").style("color", "red");
+			$.ajax({
+				type: 'GET',
+				url: ('https://api.github.com/repos/npm/npm/releases'),
+				dataType: 'JSONP'
+			}).done(function(response) {
+				$("#graph").html(JSON.stringify(response.data.length))
+				return true;
+			}).fail(function(error) {
+				$("#graph").html( JSON.stringify(error))
+			});
 		});	
 	</script>
 </head>
 <body>
-<div id="graph"></div>
+<div id="graph">Test</div>
 </body>
 </html>

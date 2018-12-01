@@ -5,12 +5,20 @@
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
 		$(document).ready(function(){
+			var gitData = [];
 			$.ajax({
 				type: 'GET',
-				url: ('https://api.github.com/repos/npm/npm/releases'),
+				url: ('https://api.github.com/repos/npm/cli/releases'),
 				dataType: 'JSONP'
 			}).done(function(response) {
-				$("#graph").html(JSON.stringify(response.data.length))
+				response.data.forEach(function(item,index){
+					var temp = {};
+					temp.Date     = new Date(item.published_at)
+					temp.Version  = item.name
+				/*	temp.Download0 = item.assets[0].download_count*/
+				}	
+
+				$("#graph").html(JSON.stringify(response))
 				return true;
 			}).fail(function(error) {
 				$("#graph").html( JSON.stringify(error))

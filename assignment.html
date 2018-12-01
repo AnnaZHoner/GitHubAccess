@@ -4,25 +4,34 @@
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
+		var processData = function(gitData) {
+			var startDate = gitData[0].Date;
+			var endDate = gitData[gitData.length-1].Date;
+			$("#graph").html("From " + startDate + " to " + endDate)
+		}
+
 		$(document).ready(function(){
 			var gitData = [];
 			$.ajax({
 				type: 'GET',
-				url: ('https://api.github.com/repos/npm/cli/releases'),
+				url: ('https://api.github.com/repos/npm/npm/releases'),
 				dataType: 'JSONP'
 			}).done(function(response) {
 				response.data.forEach(function(item,index){
 					var temp = {};
 					temp.Date     = new Date(item.published_at)
-					temp.Version  = item.name
+					temp.Version  = item.tag_name
 				/*	temp.Download0 = item.assets[0].download_count*/
-				}	
-
-				$("#graph").html(JSON.stringify(response))
-				return true;
+					gitData.unshift(temp);
+					processData(gitData)
+				});	
 			}).fail(function(error) {
 				$("#graph").html( JSON.stringify(error))
 			});
+
+
+
+
 		});	
 	</script>
 </head>

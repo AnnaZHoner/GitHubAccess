@@ -4,15 +4,46 @@
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
-		var processData = function(gitData) {
-			var startDate = gitData[0].Date;
-			var endDate = gitData[gitData.length-1].Date;
-			$("#graph").html("From " + startDate + " to " + endDate)
-		}
-
 		$(document).ready(function(){
 			var gitData = [];
-			$.ajax({
+			var processData = function(gitData) {
+				var width = 400, height = 400;
+			var data = [10, 15, 20, 25, 30];
+			var svg = d3.select("body")
+			    .append("svg")
+			    .attr("width", width)
+			    .attr("height", height);
+			
+			var xscale = d3.scaleLinear()
+			    .domain([0, d3.max(data)])
+			    .range([0, width - 100]);
+			
+			var yscale = d3.scaleLinear()
+			        .domain([0, d3.max(data)])
+			        .range([height/2, 0]);
+			
+			var x_axis = d3.axisBottom()
+			        .scale(xscale);
+			
+			var y_axis = d3.axisLeft()
+			        .scale(yscale);
+			
+			    svg.append("g")
+			       .attr("transform", "translate(50, 10)")
+			       .call(y_axis);
+			
+			var xAxisTranslate = height/2 + 10;
+			
+			    svg.append("g")
+			            .attr("transform", "translate(50, " + xAxisTranslate  +")")
+			            .call(x_axis)
+			
+							var startDate = gitData[0].Date;
+							var endDate = gitData[gitData.length-1].Date;
+							$("#graph").html("From " + startDate + " to " + endDate)
+						}
+			
+		$.ajax({
 				type: 'GET',
 				url: ('https://api.github.com/repos/npm/npm/releases'),
 				dataType: 'JSONP'
@@ -23,11 +54,13 @@
 					temp.Version  = item.tag_name
 				/*	temp.Download0 = item.assets[0].download_count*/
 					gitData.unshift(temp);
-					processData(gitData)
 				});	
 			}).fail(function(error) {
 				$("#graph").html( JSON.stringify(error))
 			});
+			processData(gitData)
+
+			
 
 
 
@@ -36,6 +69,6 @@
 	</script>
 </head>
 <body>
-<div id="graph">Test</div>
+<h2>Chart showing Releases of GitHub .... over time</h2>
 </body>
 </html>

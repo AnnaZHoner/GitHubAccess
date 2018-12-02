@@ -14,6 +14,7 @@
 	<script>
 		$(document).ready(function(){
 			var gitData = [];
+			var assets = 0;
 			var processData = function(gitData) {
 				var margin = {top: 20, right: 20, bottom: 30, left: 50},
     			width = 960 - margin.left - margin.right,
@@ -46,8 +47,8 @@
       		svg.append("circle")
       			.data([gitData])
   				.attr("class", "dot")
-  				.attr("x", function(d) { return x(d.date); })
-  				.attr("y", function(d) { return y(d.Download); })
+  				.attr("cx", function(d) { return x(d.date); })
+  				.attr("cy", function(d) { return y(d.Download); })
   				.attr("r", 4);	
       		svg.append("text")
       			.data([gitData])
@@ -58,31 +59,81 @@
   				.attr("dy", ".35em")
   				.text(function(d) { return d.Version; })
 	
-		}	
-		$.ajax({
-				type: 'GET',
-				url: ('https://api.github.com/repos/npm/npm/releases'),
-				dataType: 'JSONP'
-			}).done(function(response) {
-				response.data.forEach(function(item,index){
-					var temp = {};
-					temp.date     = new Date(item.published_at)
-					temp.Version  = item.tag_name
-					temp.Download = new Date(item.published_at).getDate()
-					//temp.Download = item.assets[0].download_count
-					//$("#graph").append(JSON.stringify(temp) + "<br>")
-				
-					gitData.unshift(temp);
-				});	
-				processData(gitData)
-			}).fail(function(error) {
-				$("#graph").append( JSON.stringify(error) + "<br>")
-			});			
-		});	
+		}
+		$("select").change(function(){
+			$("#graph").html("What "+ $(this).val())
+			var owner_repo=$(this).val();
+			ajaxCall(owner_repo)
+		});
+		$("#button").click(function(){
+			var owner=$("#owner").val();
+			var repo=$("#repo").val();
+			var owner_repo=owner + "/" + repo;
+			ajaxCall(owner_repo);
+		});
+		var ajaxCall = function(owner_repo) {	
+			if (owner.length==0 || repo.length==0) {
+				$("#graph").html("We need Owner and Repo")
+			}
+			else {
+				$("#selector").hide()
+				var gitHubURL = 'https://api.github.com/repos/' + owner_repo +'/releases'
+				$.ajax({
+						type: 'GET',
+						url: gitHubURL,
+						dataType: 'JSONP'
+				}).done(function(response) {
+						//$("#graph").append(JSON.stringify(response.data[0]))
+						response.data.forEach(function(item,index){
+							var temp = {};
+							temp.date     = new Date(item.published_at)
+							temp.Version  = item.tag_name
+							temp.Download = new Date(item.published_at).getDate()
+							assets = assets - 0 + item.assets.length
+							//$("#graph").append(JSON.stringify(temp) + "<br>")
+							
+							gitData.unshift(temp);
+						});	
+						processData(gitData)
+				}).fail(function(error) {
+					$("#graph").html( JSON.stringify(error) + "<br>")
+				});			
+			}
+		}
+	});
 	</script>
 </head>
 <body>
 	<div id="graph">Error : </div>
-<h2>Chart showing Releases of GitHub .... over time</h2>
+<h2>Chart showing Releases of GitHub <span id="owner_repo"></span> over time</h2>
+<table id="selector">
+	<form>
+		<tr>
+			<td>Select one of the top 10 repo</td>
+			<td><select>
+					<option value="torvarlds/linux">Linux</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="npm/cli">NPM post June 2017</option>
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td>Or enter your desired Owner/Repo here</td>
+			<td><input type="text" placeholder="owner" id="owner" size=10>/
+				<input type="text" placeholder="repo"  id="repo" size=10>
+			</td>
+		</tr>
+		<tr>
+			<td>
+				<input type="button" value="Retrieve Owner/Repo Data" id="button">
+			</td>
+		</tr>		
+	</form>
+</table>	
 </body>
 </html>

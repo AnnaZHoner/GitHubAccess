@@ -7,115 +7,146 @@
   			fill: none;
   			stroke: steelblue;
   			stroke-width: 2px;
+  		}
+  		.label {text-anchor: middle;
+		}
+		.label rect {
+  			fill: white;
+		}
+		.label-key {
+  			font-weight: bold;
 		}	
 	</style>	
 	<script type="text/javascript" src="js/jquery-3.3.1.min.js"></script>
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
 		$(document).ready(function(){
+			/*$.ajax({
+				url: 'https://api.github.com/users/honera@tcd.ie'	
+			}).done(function (response) {
+				$("#graph").append("accessed")
+			}).fail(function(error){
+				$("#graph").append(error)
+			});*/	
+
 			var gitData = [];
 			var assets = 0;
 			var processData = function(gitData) {
-				var margin = {top: 20, right: 20, bottom: 30, left: 50},
-    			width = 960 - margin.left - margin.right,
-    			height = 500 - margin.top - margin.bottom;
-    		var x = d3.scaleTime().range([0, width]);
-			var y = d3.scaleLinear().range([height, 0]);	
-
-			var valueline = d3.line()
-    			.x(function(d) { return x(d.date); })
-    			.y(function(d) { return y(d.Download); });
-
-    		var svg = d3.select("body").append("svg")
-    			.attr("width", width + margin.left + margin.right)
-    			.attr("height", height + margin.top + margin.bottom)
-  				.append("g")
-    			.attr("transform",
-          			"translate(" + margin.left + "," + margin.top + ")");
-    		x.domain(d3.extent(gitData, function(d) { return d.date; }));
-    		y.domain([0, d3.max(gitData, function(d) { return d.Download; })]);	
-  			//y.domain([0, d3.max(gitData, function(d) { return d.tempDownload; })]);	
-  			svg.append("path")
-      			.data([gitData])
-      			.attr("class", "line")
-      			.attr("d", valueline);
-      		svg.append("g")
-      			.attr("transform", "translate(0," + height + ")")
-      			.call(d3.axisBottom(x));	
-     		svg.append("g")
-      			.call(d3.axisLeft(y));
-      		svg.append("circle")
-      			.data([gitData])
-  				.attr("class", "dot")
-  				.attr("cx", function(d) { return x(d.date); })
-  				.attr("cy", function(d) { return y(d.Download); })
-  				.attr("r", 4);	
-      		svg.append("text")
-      			.data([gitData])
-      			.enter()
-	  			.attr("class","label")
-  				.attr("x", function(d) { return x(d.date); })
-  				.attr("y", function(d) { return y(d.Download); })
-  				.attr("dy", ".35em")
-  				.text(function(d) { return d.Version; })
+				var margin = {top: 20, right: 20, bottom: 30, left: 50};
+    			var	width = 960 - margin.left - margin.right;
+    			var	height = 500 - margin.top - margin.bottom;
+    			var x = d3.scaleTime().range([0, width]);
+				var y = d3.scaleLinear().range([height, 0]);	
 	
-		}
-		$("select").change(function(){
-			$("#graph").html("What "+ $(this).val())
-			var owner_repo=$(this).val();
-			ajaxCall(owner_repo)
-		});
-		$("#button").click(function(){
-			var owner=$("#owner").val();
-			var repo=$("#repo").val();
-			var owner_repo=owner + "/" + repo;
-			ajaxCall(owner_repo);
-		});
-		var ajaxCall = function(owner_repo) {	
-			if (owner.length==0 || repo.length==0) {
-				$("#graph").html("We need Owner and Repo")
-			}
-			else {
-				$("#selector").hide()
-				var gitHubURL = 'https://api.github.com/repos/' + owner_repo +'/releases'
-				$.ajax({
+				var valueline = d3.line()
+    				.x(function(d) { return x(d.date); })
+    				.y(function(d) { return y(d.Download); });
+	
+    			var svg = d3.select("body").append("svg")
+    				.attr("width", width + margin.left + margin.right)
+    				.attr("height", height + margin.top + margin.bottom)
+  					.append("g")
+    				.attr("transform",
+          				"translate(" + margin.left + "," + margin.top + ")");
+    			x.domain(d3.extent(gitData, function(d) { return d.date; }));
+    			y.domain([0, d3.max(gitData, function(d) { return d.Download; })]);	
+  				//y.domain([0, d3.max(gitData, function(d) { return d.tempDownload; })]);	
+  				svg.append("path")
+      				.data([gitData])
+      				.attr("class", "line")
+      				.attr("d", valueline);
+      			svg.append("g")
+      				.attr("transform", "translate(0," + height + ")")
+      				.call(d3.axisBottom(x));	
+     			svg.append("g")
+      				.call(d3.axisLeft(y));
+
+      			var label = svg.selectAll(".label")
+      				.data(function(d) { return d; })
+    				.enter().append("g")
+      				.attr("class", "label")
+      				.attr("transform", function(d, i) { return "translate(" + x(d.date) + "," + y(d.Download) + ")"; });
+
+  					label.append("text")
+      					.attr("dy", ".35em")
+      					.text(function(d) { return d.Download; })
+    					.filter(function(d, i) { return i === data.length - 1; })
+    					.append("tspan")
+      					.attr("class", "label-key")
+      					.text(function(d) { return " " + d.key; });
+
+  					label.append("rect", "text")
+      					.datum(function() { return this.nextSibling.getBBox(); })
+      					.attr("x", function(d) { return d.x - labelPadding; })
+      					.attr("y", function(d) { return d.y - labelPadding; })
+      					.attr("width", function(d) { return d.width + 2 * labelPadding; })
+      					.attr("height", function(d) { return d.height + 2 * labelPadding; });
+				};
+			$("select").change(function(){
+				$("#graph").html("What "+ $(this).val())
+				var owner_repo=$(this).val();
+				ajaxCall(owner_repo)
+				});
+			$("#button").click(function(){
+				var owner=$("#owner").val();
+				var repo=$("#repo").val();
+				var owner_repo=owner + "/" + repo;
+				ajaxCall(owner_repo);
+				});
+			$("#show_selection").click(function(){
+				$("#graph").html("")
+				$("svg").remove();
+				$("#selector").toggle()
+			});
+			var ajaxCall = function(owner_repo) {	
+				if (owner.length==0 || repo.length==0) {
+					$("#graph").html("We need Owner and Repo")
+				}
+				else {
+					$("#selector").hide()
+					var gitHubURL = 'https://api.github.com/repos/' + owner_repo +'/releases'
+					$.ajax({
 						type: 'GET',
 						url: gitHubURL,
 						dataType: 'JSONP'
-				}).done(function(response) {
-						//$("#graph").append(JSON.stringify(response.data[0]))
-						response.data.forEach(function(item,index){
-							var temp = {};
-							temp.date     = new Date(item.published_at)
-							temp.Version  = item.tag_name
-							temp.Download = new Date(item.published_at).getDate()
-							assets = assets - 0 + item.assets.length
-							//$("#graph").append(JSON.stringify(temp) + "<br>")
-							
-							gitData.unshift(temp);
-						});	
-						processData(gitData)
-				}).fail(function(error) {
-					$("#graph").html( JSON.stringify(error) + "<br>")
-				});			
+					}).done(function(response) {
+						if (response.data[0].assets.length==0) {
+							$("#graph").html("This repo does not publish the download count")
+						} else {
+							//$("#graph").append(JSON.stringify(response.data))
+							response.data.forEach(function(item,index){
+								var temp = {};
+								temp.date     = new Date(item.published_at)
+								temp.key  = item.tag_name
+								temp.Download = new Date(item.assets.download_count)
+								//$("#graph").append(JSON.stringify(temp) + "<br>")
+								
+								gitData.unshift(temp);
+							});	
+							processData(gitData)
+						}	
+					}).fail(function(error) {
+						$("#graph").html( JSON.stringify(error) + "<br>")
+					});			
+				}
 			}
-		}
-	});
+		});
 	</script>
 </head>
 <body>
-	<div id="graph">Error : </div>
+<div id="graph">Error : </div>
+<div id="show_selection">Show selection again</div>
 <h2>Chart showing Releases of GitHub <span id="owner_repo"></span> over time</h2>
 <table id="selector">
 	<form>
 		<tr>
 			<td>Select one of the top 10 repo</td>
 			<td><select>
-					<option value="torvarlds/linux">Linux</option>
-					<option value="npm/npm">NPM pre June 2017</option>
-					<option value="npm/npm">NPM pre June 2017</option>
-					<option value="npm/npm">NPM pre June 2017</option>
-					<option value="npm/npm">NPM pre June 2017</option>
+					<option value="">Select an option</option>
+					<option value="curl/curl">CURL</option>
+					<option value="Homebrew/brew">Homebrew</option>
+					<option value="twbs/bootstrap">Bootstrap</option>
+					<option value="d3/d3">D3</option>
 					<option value="npm/npm">NPM pre June 2017</option>
 					<option value="npm/npm">NPM pre June 2017</option>
 					<option value="npm/cli">NPM post June 2017</option>
@@ -134,6 +165,6 @@
 			</td>
 		</tr>		
 	</form>
-</table>	
+</table>
 </body>
 </html>

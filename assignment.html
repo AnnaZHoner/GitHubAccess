@@ -28,9 +28,7 @@
 			}).fail(function(error){
 				$("#graph").append(error)
 			});*/	
-
 			var gitData = [];
-			var assets = 0;
 			var processData = function(gitData) {
 				var margin = {top: 20, right: 20, bottom: 30, left: 50};
     			var	width = 960 - margin.left - margin.right;
@@ -104,6 +102,7 @@
 				}
 				else {
 					$("#selector").hide()
+					gitData=[];
 					var gitHubURL = 'https://api.github.com/repos/' + owner_repo +'/releases'
 					$.ajax({
 						type: 'GET',
@@ -113,12 +112,16 @@
 						if (response.data[0].assets.length==0) {
 							$("#graph").html("This repo does not publish the download count")
 						} else {
-							//$("#graph").append(JSON.stringify(response.data))
+							$("#graph").append(response.data[0].assets[0].download_count)
 							response.data.forEach(function(item,index){
 								var temp = {};
 								temp.date     = new Date(item.published_at)
 								temp.key  = item.tag_name
-								temp.Download = new Date(item.assets.download_count)
+								temp.Download = 0
+								item.assets.forEach(function(asset){
+									temp.Download = temp.Download + parseInt(asset.download_count)
+								})
+								
 								//$("#graph").append(JSON.stringify(temp) + "<br>")
 								
 								gitData.unshift(temp);
@@ -144,12 +147,10 @@
 			<td><select>
 					<option value="">Select an option</option>
 					<option value="curl/curl">CURL</option>
-					<option value="Homebrew/brew">Homebrew</option>
 					<option value="twbs/bootstrap">Bootstrap</option>
 					<option value="d3/d3">D3</option>
-					<option value="npm/npm">NPM pre June 2017</option>
-					<option value="npm/npm">NPM pre June 2017</option>
-					<option value="npm/cli">NPM post June 2017</option>
+					<option value="electron/electron">Electron</option>
+					<option value="FortAwesome/Font-Awesome">Font-Awesome</option>
 				</select>
 			</td>
 		</tr>

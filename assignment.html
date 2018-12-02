@@ -21,13 +21,6 @@
 	<script type="text/javascript" src="js/d3.v5.min.js"></script>
 	<script>
 		$(document).ready(function(){
-			/*$.ajax({
-				url: 'https://api.github.com/users/honera@tcd.ie'	
-			}).done(function (response) {
-				$("#graph").append("accessed")
-			}).fail(function(error){
-				$("#graph").append(error)
-			});*/	
 			var gitData = [];
 			var processData = function(gitData) {
 				var margin = {top: 20, right: 20, bottom: 30, left: 50};
@@ -35,7 +28,7 @@
     			var	height = 500 - margin.top - margin.bottom;
     			var x = d3.scaleTime().range([0, width]);
 				var y = d3.scaleLinear().range([height, 0]);	
-	
+  				var z = d3.scaleOrdinal(scaleCategory20c);
 				var valueline = d3.line()
     				.x(function(d) { return x(d.date); })
     				.y(function(d) { return y(d.Download); });
@@ -50,7 +43,8 @@
     			y.domain([0, d3.max(gitData, function(d) { return d.Download; })]);	
   				//y.domain([0, d3.max(gitData, function(d) { return d.tempDownload; })]);	
   				svg.append("path")
-      				.data([gitData])
+      				//.data([gitData])
+      				.style("stroke", function(d) { return z(d[0].key); })
       				.attr("class", "line")
       				.attr("d", valueline);
       			svg.append("g")
@@ -81,7 +75,6 @@
       					.attr("height", function(d) { return d.height + 2 * labelPadding; });
 				};
 			$("select").change(function(){
-				$("#graph").html("What "+ $(this).val())
 				var owner_repo=$(this).val();
 				ajaxCall(owner_repo)
 				});
@@ -98,11 +91,10 @@
 			});
 			var ajaxCall = function(owner_repo) {	
 				if (owner.length==0 || repo.length==0) {
-					$("#graph").html("We need Owner and Repo")
+					$("#graph").html("We need an Owner and Repo")
 				}
 				else {
 					$("#selector").hide()
-					gitData=[];
 					var gitHubURL = 'https://api.github.com/repos/' + owner_repo +'/releases'
 					$.ajax({
 						type: 'GET',
@@ -114,16 +106,13 @@
 						} else {
 							$("#graph").append(response.data[0].assets[0].download_count)
 							response.data.forEach(function(item,index){
-								var temp = {};
-								temp.date     = new Date(item.published_at)
+								var temp  = {};
+								temp.date = new Date(item.published_at)
 								temp.key  = item.tag_name
 								temp.Download = 0
 								item.assets.forEach(function(asset){
 									temp.Download = temp.Download + parseInt(asset.download_count)
 								})
-								
-								//$("#graph").append(JSON.stringify(temp) + "<br>")
-								
 								gitData.unshift(temp);
 							});	
 							processData(gitData)

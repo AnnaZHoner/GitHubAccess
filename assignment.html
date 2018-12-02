@@ -26,6 +26,7 @@
 				var margin = {top: 20, right: 20, bottom: 30, left: 50};
     			var	width = 960 - margin.left - margin.right;
     			var	height = 500 - margin.top - margin.bottom;
+    			var labelPadding = 3;
     			var x = d3.scaleTime().range([0, width]);
 				var y = d3.scaleLinear().range([height, 0]);	
   				var z = d3.scaleOrdinal(d3.schemeCategory20c);
@@ -85,14 +86,14 @@
 				ajaxCall(owner_repo);
 				});
 			$("#show_selection").click(function(){
-				$("#graph").html("")
+				$("#message").html("")
 				$("svg").remove();
 				$("#selector").toggle()
 			});
 			var ajaxCall = function(owner_repo) {	
 				$("#owner_repo").html(owner_repo)
 				if (owner.length==0 || repo.length==0) {
-					$("#graph").html("We need an Owner and Repo")
+					$("#message").html("We need an Owner and Repo")
 				}
 				else {
 					$("#selector").hide()
@@ -103,9 +104,9 @@
 						dataType: 'JSONP'
 					}).done(function(response) {
 						if (response.data[0].assets.length==0) {
-							$("#graph").append("This repo does not publish the download count")
+							$("#message").append("This repo does not publish the download count")
 						} else {
-							$("#graph").append("You have " + response.meta["X-RateLimit-Remaining"] + " remaining GitHub access attempts")
+							$("#message").append("You have " + response.meta["X-RateLimit-Remaining"] + " remaining GitHub access attempts")
 							response.data.forEach(function(item,index){
 								var temp  = {};
 								temp.date = new Date(item.published_at)
@@ -119,7 +120,7 @@
 							processData(gitData)
 						}	
 					}).fail(function(error) {
-						$("#graph").html( JSON.stringify(error) + "<br>")
+						$("#message").html( JSON.stringify(error) + "<br>")
 					});			
 				}
 			}
@@ -127,9 +128,9 @@
 	</script>
 </head>
 <body>
-<div id="graph">Error : </div>
-<div id="show_selection">Show selection again</div>
 <h2>Chart showing Releases of GitHub <span id="owner_repo"></span> over time</h2>
+<div id="message"></div>
+<div id="show_selection">Show selection again</div>
 <table id="selector">
 	<form>
 		<tr>

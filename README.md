@@ -1,6 +1,15 @@
 GitHub Measurement - Download Count of Releases against Date of Releases 
-
 ![d3](/Examples/d3.png)
+This project was achieved using the following: 
+
+Embedding JavaScript in HTML
+
+JQuery
+
+Ajax
+
+d3.js
+
 This program allows the user to plot the Downloads of a repo over multiple releases. The graph can be used to assess the popularity of their releases, and may use it to assertain which additons user dis/liked. 
 ![bootstrap](/Examples/bootstrap.png)
 
